@@ -87,7 +87,7 @@ class CalendarPageState extends State<CalendarPage> {
     for (CalendarItem item in calendar) {
       items.add(new ListTile(title: new Text(item.date)));
     }
-
+    final width = MediaQuery.of(context).size.width;
     return new Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: <Widget>[
@@ -103,9 +103,12 @@ class CalendarPageState extends State<CalendarPage> {
               final style = calendar[index].not_available == true
                   ? new TextStyle(decoration: TextDecoration.lineThrough, fontSize: 26)
                   : new TextStyle(fontSize: 26);
-              return Text(
-                "${calendar[index].date} ${calendar[index].kind}",
-                style: style,
+              return Padding(
+                padding: EdgeInsets.only(left: 10),
+                child:  Text(
+                  "${calendar[index].date} ${calendar[index].kind}",
+                  style: style,
+                )
               );
             }),
         ),
