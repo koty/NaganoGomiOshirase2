@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:nagano_gomi_oshirase2/calendar_page.dart';
+import 'package:nagano_gomi_oshirase2/preference.dart';
 
 void main() => runApp(MyApp());
 
@@ -27,17 +28,18 @@ class MyStatelessWidget extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('長野市unofficialゴミ収集カレンダー'),
-        /*
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.shopping_cart),
+            icon: new Image.asset("assets/icons/preference.png"),
             tooltip: 'Open shopping cart',
             onPressed: () {
-              // ...
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => PreferencePage()),
+              );
             },
           ),
         ],
-        */
       ),
       body: new AppBody(),
     );
