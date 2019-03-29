@@ -27,10 +27,10 @@ class _PreferencePageState extends State<PreferencePage> {
         .then((SharedPreferences prefs) {
           setState(() {
             notifyOnPreviousDay = getBool(prefs, "notifyOnPreviousDay", false);
-            notifyOnToday = getBool(prefs, "notifyOnToday", true);
-            previousTime = TimeOfDay(hour: getInt(prefs, "previousHour", 21),
+            notifyOnToday = getBool(prefs, "notifyOnToday", false);
+            previousTime = TimeOfDay(hour: getInt(prefs, "previousHour", 0),
                                      minute: getInt(prefs, "previousMinute", 0));
-            todayTime = TimeOfDay(hour: getInt(prefs, "todayHour", 6),
+            todayTime = TimeOfDay(hour: getInt(prefs, "todayHour", 0),
                 minute: getInt(prefs, "todayMinute", 0));
             final previousHour = f.format(previousTime.hour);
             final previousMinute = f.format(previousTime.minute);

@@ -37,17 +37,18 @@ class NotificationScheduler {
     });
   }
   static void _showTodayNotification() {
-    print('_showTodayNotification');
+    print('_showTodayNotification ' + DateTime.now().toString());
     _showNotification(TodayPreviousDay.today);
   }
   static void _showPreviousDayNotification() {
-    print('_showPreviousDayNotification');
+    print('_showPreviousDayNotification ' + DateTime.now().toString());
     _showNotification(TodayPreviousDay.previousDay);
   }
   static void register(SharedPreferences prefs, TodayPreviousDay todayPrevious) {
     String notifyOnKey;
     String hourKey;
     String minuteKey;
+    int defaultHour;
     int alarmId;
     Function callback;
     if (todayPrevious == TodayPreviousDay.today) {
@@ -56,20 +57,22 @@ class NotificationScheduler {
       minuteKey = "todayMinute";
       alarmId = 0;
       callback = _showTodayNotification;
+      defaultHour = 6;
     } else {
       notifyOnKey = "notifyOnPreviousDay";
       hourKey = "previousHour";
       minuteKey = "previousMinute";
       alarmId = 1;
       callback = _showPreviousDayNotification;
+      defaultHour = 21;
     }
 
     final notify = prefs.getBool(notifyOnKey);
     if (notify != true) {
       return;
     }
-    final hour = prefs.getInt(hourKey);
-    final minute = prefs.getInt(minuteKey);
+    final hour = prefs.getInt(hourKey) == null ? defaultHour : prefs.getInt(hourKey);
+    final minute = prefs.getInt(minuteKey) == null ? 0 : prefs.getInt(minuteKey);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day, hour, minute);
     DateTime runAt;
@@ -117,14 +120,15 @@ class NotificationScheduler {
       return;
     }
     final calendar = calendars[selectedTown];
-    calendar.add(CalendarItem("2019-03-28", "28日のごみ■", false));
-    calendar.add(CalendarItem("2019-03-29", "29日のごみ★", false));
     final found = calendar.where((x) => x.date == date).toList();
     if (found.length > 0) {
       final kinds = found.map((x) => x.kind).join(", ");
-      String body = '$kindsです';
+      String body = '$kindsです。';
       if (found[0].not_available == true) {
-        body += 'がこの日は収集はありません。';
+        body += 'この日は収集はありません。';
+      }
+      if (nextIsNotAvailable(calendar, found[0].date)) {
+        body += '次回の可燃の収集はお休みです。';
       }
       final title = '$titlePrefixのごみ収集予定';
       await flutterLocalNotificationsPlugin.show(
@@ -137,5 +141,17 @@ class NotificationScheduler {
     }
     // 次回のアラームを登録
     NotificationScheduler.register(prefs, todayPrevious);
+  }
+
+  static bool nextIsNotAvailable(List<CalendarItem> calendar, String date) {
+    final sameKindItem = calendar.where((x) => x.kind == '可燃').toList();
+    for(int i = 0 ; i < sameKindItem.length ; i++) {
+      if (sameKindItem[i].date == date) {
+        if (i + 1 >= sameKindItem.length) {
+          return false;
+        }
+        return sameKindItem[i + 1].not_available == true;
+      }
+    }
   }
 }
