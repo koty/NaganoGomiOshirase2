@@ -32,9 +32,10 @@ class MyStatelessWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textStyle = TextStyle(fontSize: 19);
     return Scaffold(
       appBar: AppBar(
-        title: Text('長野市unofficialゴミ収集カレンダー'),
+        title: Text('長野市unofficialごみ収集カレンダー', style: textStyle),
         actions: <Widget>[
           IconButton(
             icon: new Image.asset("assets/icons/preference.png"),
