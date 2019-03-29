@@ -2,20 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
-import 'package:intl/intl.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:nagano_gomi_oshirase2/calendar_util.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CalendarPage extends StatefulWidget {
   CalendarPage({Key key}) : super(key: key);
 
   CalendarPageState createState() => new CalendarPageState();
-}
-
-class CalendarItem {
-  String date;
-  String kind;
-  bool not_available;
-  CalendarItem(this.date, this.kind, this.not_available);
 }
 
 class CalendarPageState extends State<CalendarPage> {
@@ -29,12 +22,15 @@ class CalendarPageState extends State<CalendarPage> {
   void initState() {
     super.initState();
     getDropDownMenuItems().then((val) {
-      setState(() {
-        _dropDownMenuItems = val;
-        _currentTown = _dropDownMenuItems[0].value;
+      SharedPreferences.getInstance().then((prefs) {
+        final selectedTown = prefs.getString("selectedTown");
+        setState(() {
+          _dropDownMenuItems = val;
+          _currentTown = selectedTown == null ? _dropDownMenuItems[0].value : selectedTown;
+        });
       });
     });
-    getCalendar().then((val) {
+    CalendarUtil.getCalendar().then((val) {
       setState(() {
         _calendars = val;
       });
@@ -55,29 +51,6 @@ class CalendarPageState extends State<CalendarPage> {
       print("Request failed with status: ${response.statusCode}.");
     }
     return menu;
-  }
-
-  Future<Map<String, List<CalendarItem>>> getCalendar() async {
-    var response = await http.get("https://b-sw.co/nagano_gomi_calendar/gomi_calendar.json");
-    if (response.statusCode == 200) {
-      String responseBody = convert.utf8.decode(response.bodyBytes);
-       final jsonResponse = convert.jsonDecode(responseBody);
-       final o = new Map<String, List<CalendarItem>>();
-       final dateFormatter = new DateFormat("yyyy-MM-dd");
-       final today = dateFormatter.format(DateTime.now());
-       for (var key in jsonResponse.keys) {
-         final List<CalendarItem> h = jsonResponse[key]
-             .map((x) => new CalendarItem(x['date'], x['kind'], x['not_available']))
-             .toList()
-             .cast<CalendarItem>();
-         h.sort((x, y) => x.date.compareTo(y.date));
-         o[key] = h.where((x) => today.compareTo(x.date) <= 0).toList();
-       }
-       return o;
-    } else {
-      print("Request failed with status: ${response.statusCode}.");
-    }
-    return null;
   }
 
   @override
@@ -119,6 +92,9 @@ class CalendarPageState extends State<CalendarPage> {
     print("Selected city $selectedTown, we are going to refresh the UI");
     setState(() {
       _currentTown = selectedTown;
+    });
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString("selectedTown", selectedTown);
     });
   }
 }

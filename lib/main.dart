@@ -2,12 +2,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:nagano_gomi_oshirase2/calendar_page.dart';
+import 'package:nagano_gomi_oshirase2/notification_scheduler.dart';
 import 'package:nagano_gomi_oshirase2/preference.dart';
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+  MyApp() {
+    AndroidAlarmManager.initialize();
+    NotificationScheduler.initialize();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -25,9 +32,10 @@ class MyStatelessWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textStyle = TextStyle(fontSize: 19);
     return Scaffold(
       appBar: AppBar(
-        title: Text('長野市unofficialゴミ収集カレンダー'),
+        title: Text('長野市unofficialごみ収集カレンダー', style: textStyle),
         actions: <Widget>[
           IconButton(
             icon: new Image.asset("assets/icons/preference.png"),

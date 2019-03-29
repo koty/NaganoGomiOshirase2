@@ -1,4 +1,4 @@
-package koty.jp.nagano_gomi_oshirase2
+package jp.koty.nagano_gomi_oshirase2
 
 import android.os.Bundle
 
