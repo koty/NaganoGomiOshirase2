@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'dart:convert' as convert;
 import 'package:nagano_gomi_oshirase2/calendar_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -76,10 +77,14 @@ class CalendarPageState extends State<CalendarPage> {
               final style = calendar[index].not_available == true
                   ? new TextStyle(decoration: TextDecoration.lineThrough, fontSize: 26)
                   : new TextStyle(fontSize: 26);
+              final rawDate = DateTime.parse(calendar[index].date);
+              final formatter = new DateFormat('M/d');
+              final weekdayNames = ['日', '月', '火', '水', '木', '金', '土'];
+              final formattedDate = formatter.format(rawDate); // DateからString
               return Padding(
                 padding: EdgeInsets.only(left: 10),
                 child:  Text(
-                  "${calendar[index].date} ${calendar[index].kind}",
+                  "${formattedDate}(${weekdayNames[rawDate.weekday]}) ${calendar[index].kind}",
                   style: style,
                 )
               );
@@ -88,6 +93,7 @@ class CalendarPageState extends State<CalendarPage> {
       ],
     );
   }
+
   void changedDropDownItem(String selectedTown) {
     print("Selected city $selectedTown, we are going to refresh the UI");
     setState(() {
