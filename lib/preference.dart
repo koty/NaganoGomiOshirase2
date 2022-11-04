@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:nagano_gomi_oshirase2/notification_scheduler.dart';
+import 'notification_scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PreferencePage extends StatefulWidget {
@@ -12,13 +12,13 @@ class PreferencePage extends StatefulWidget {
 }
 
 class _PreferencePageState extends State<PreferencePage> {
-  TimeOfDay previousTime;
-  TimeOfDay todayTime;
+  TimeOfDay previousTime = TimeOfDay.now();
+  TimeOfDay todayTime = TimeOfDay.now();
   bool notifyOnPreviousDay = false;
   bool notifyOnToday = false;
-  final TextEditingController _previousTimeController = new TextEditingController();
-  final TextEditingController _todayTimeController = new TextEditingController();
-  final f = new NumberFormat("00");
+  final TextEditingController _previousTimeController = TextEditingController();
+  final TextEditingController _todayTimeController = TextEditingController();
+  final f = NumberFormat("00");
 
   @override
   void initState() {
@@ -73,13 +73,13 @@ class _PreferencePageState extends State<PreferencePage> {
                   children: <Widget>[
                     Checkbox(value: notifyOnPreviousDay, onChanged: (value) {
                       SharedPreferences.getInstance().then((prefs) {
-                        prefs.setBool("notifyOnPreviousDay", value);
+                        prefs.setBool("notifyOnPreviousDay", value!);
                       });
                       AndroidAlarmManager.cancel(1);
                       setState(() {
-                        notifyOnPreviousDay = value;
+                        notifyOnPreviousDay = value!;
                       });
-                      if (value) {
+                      if (value!) {
                         SharedPreferences.getInstance().then((prefs) {
                           NotificationScheduler.register(prefs, TodayPreviousDay.previousDay);
                         });
@@ -131,13 +131,13 @@ class _PreferencePageState extends State<PreferencePage> {
                   children: <Widget>[
                     Checkbox(value: notifyOnToday, onChanged: (value) {
                       SharedPreferences.getInstance().then((prefs) {
-                        prefs.setBool("notifyOnToday", value);
+                        prefs.setBool("notifyOnToday", value!);
                       });
                       setState(() {
-                        notifyOnToday = value;
+                        notifyOnToday = value!;
                       });
                       AndroidAlarmManager.cancel(0);
-                      if (value) {
+                      if (value!) {
                         SharedPreferences.getInstance().then((prefs) {
                           NotificationScheduler.register(prefs, TodayPreviousDay.today);
                         });

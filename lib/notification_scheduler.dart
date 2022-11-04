@@ -1,8 +1,7 @@
-import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
-import 'package:nagano_gomi_oshirase2/android_alarm_manager_custom_wrapper.dart';
-import 'package:nagano_gomi_oshirase2/calendar_util.dart';
+import 'calendar_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum TodayPreviousDay {
@@ -12,14 +11,14 @@ enum TodayPreviousDay {
 
 
 class NotificationScheduler {
-  static final flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+  static final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   static void initialize() {
-    final initializationSettingsAndroid = new AndroidInitializationSettings('trashcan_no_bg');
-    final initializationSettingsIOS = new IOSInitializationSettings();
-    final initializationSettings = new InitializationSettings(
-        initializationSettingsAndroid,
-        initializationSettingsIOS
+    final initializationSettingsAndroid = AndroidInitializationSettings('trashcan_no_bg');
+    final initializationSettingsIOS = DarwinInitializationSettings();
+    final initializationSettings = InitializationSettings(
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS
     );
 
     flutterLocalNotificationsPlugin.initialize(initializationSettings).then((value) {
@@ -50,7 +49,7 @@ class NotificationScheduler {
     String minuteKey;
     int defaultHour;
     int alarmId;
-    Function callback;
+    dynamic Function() callback;
     if (todayPrevious == TodayPreviousDay.today) {
       notifyOnKey = "notifyOnToday";
       hourKey = "todayHour";
@@ -74,7 +73,7 @@ class NotificationScheduler {
     final hour = prefs.getInt(hourKey) == null ? defaultHour : prefs.getInt(hourKey);
     final minute = prefs.getInt(minuteKey) == null ? 0 : prefs.getInt(minuteKey);
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day, hour, minute);
+    final today = DateTime(now.year, now.month, now.day, hour!, minute!);
     DateTime runAt;
     if (today.compareTo(now) > 0) {
       // 本日未到来時刻
@@ -83,8 +82,8 @@ class NotificationScheduler {
       // 本日到来済み時刻なので翌日を指定
       runAt = today.add(Duration(days: 1));
     }
-    AndroidAlarmManagerCustomWrapper
-        .oneShot(runAt, alarmId, callback, wakeup: true)
+    AndroidAlarmManager
+        .oneShotAt(runAt, alarmId, callback, wakeup: true)
         .then((result) {
           print('oneShot result is $result at $runAt. alermId is $alarmId');
         });
@@ -106,12 +105,12 @@ class NotificationScheduler {
       date = dateFormatter.format(now.add(Duration(days: 1)));
       notificationId = 1;
     }
-    final androidPlatformChannelSpecifics = new AndroidNotificationDetails(
-        'your channel id $notificationId', 'your channel name', 'your channel description',
-        importance: Importance.Max, priority: Priority.High);
-    final iOSPlatformChannelSpecifics = new IOSNotificationDetails();
-    final platformChannelSpecifics = new NotificationDetails(
-        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    final androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'your channel id $notificationId', 'your channel name',
+        importance: Importance.max, priority: Priority.high);
+    const iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+    final platformChannelSpecifics = NotificationDetails(
+        android: androidPlatformChannelSpecifics, iOS: iOSPlatformChannelSpecifics);
     final calendars = await CalendarUtil.getCalendar();
     final prefs = await SharedPreferences.getInstance();
     final selectedTown = prefs.getString("selectedTown");
@@ -120,7 +119,7 @@ class NotificationScheduler {
       return;
     }
     final calendar = calendars[selectedTown];
-    final found = calendar.where((x) => x.date == date).toList();
+    final found = calendar!.where((x) => x.date == date).toList();
     if (found.length > 0) {
       final kinds = found.map((x) => x.kind).join(", ");
       String body = '$kindsです。';
@@ -153,5 +152,6 @@ class NotificationScheduler {
         return sameKindItem[i + 1].not_available == true;
       }
     }
+    return false;
   }
 }

@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'dart:convert' as convert;
-import 'package:nagano_gomi_oshirase2/calendar_util.dart';
+import 'calendar_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CalendarPage extends StatefulWidget {
-  CalendarPage({Key key}) : super(key: key);
+  CalendarPage({Key? key}) : super(key: key);
 
   CalendarPageState createState() => new CalendarPageState();
 }
@@ -15,7 +15,7 @@ class CalendarPage extends StatefulWidget {
 class CalendarPageState extends State<CalendarPage> {
   CalendarPageState();
 
-  List<DropdownMenuItem<String>> _dropDownMenuItems;
+  List<DropdownMenuItem<String>> _dropDownMenuItems = [];
   String _currentTown = "";
   Map<String, List<CalendarItem>> _calendars = new Map();
 
@@ -27,7 +27,7 @@ class CalendarPageState extends State<CalendarPage> {
         final selectedTown = prefs.getString("selectedTown");
         setState(() {
           _dropDownMenuItems = val;
-          _currentTown = selectedTown == null ? _dropDownMenuItems[0].value : selectedTown;
+          _currentTown = (selectedTown == null ? _dropDownMenuItems[0].value : selectedTown)!;
         });
       });
     });
@@ -39,7 +39,7 @@ class CalendarPageState extends State<CalendarPage> {
   }
 
   Future<List<DropdownMenuItem<String>>> getDropDownMenuItems() async {
-    var response = await http.get("https://b-sw.co/nagano_gomi_calendar/calendar_no_list_withoutbom.json");
+    var response = await http.get(Uri.parse("https://b-sw.co/nagano_gomi_calendar/calendar_no_list_withoutbom.json"));
     List<DropdownMenuItem<String>> menu = [];
     if (response.statusCode == 200) {
       String responseBody = convert.utf8.decode(response.bodyBytes);
@@ -58,7 +58,7 @@ class CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     final List<Widget> items = [];
     final calendar = _calendars.containsKey(_currentTown) ? _calendars[_currentTown] : [];
-    for (CalendarItem item in calendar) {
+    for (CalendarItem item in calendar!) {
       items.add(new ListTile(title: new Text(item.date)));
     }
     final width = MediaQuery.of(context).size.width;
@@ -94,13 +94,13 @@ class CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  void changedDropDownItem(String selectedTown) {
+  void changedDropDownItem(String? selectedTown) {
     print("Selected city $selectedTown, we are going to refresh the UI");
     setState(() {
-      _currentTown = selectedTown;
+      _currentTown = selectedTown!;
     });
     SharedPreferences.getInstance().then((prefs) {
-      prefs.setString("selectedTown", selectedTown);
+      prefs.setString("selectedTown", selectedTown!);
     });
   }
 }
